@@ -100,7 +100,7 @@ GenerateClassCluster=0
 DocumentUniqueId=
 
 [Document4]
-DocumentPath=StenoKeyboard_Gerber.Cam
+DocumentPath=StenoKeyboard_Final2.Cam
 AnnotationEnabled=1
 AnnotateStartValue=1
 AnnotationIndexControlEnabled=0
@@ -117,7 +117,7 @@ GenerateClassCluster=0
 DocumentUniqueId=
 
 [Document5]
-DocumentPath=StenoKeyboard_NCDrill.Cam
+DocumentPath=StenoKeyboard_Final_NCdrill.Cam
 AnnotationEnabled=1
 AnnotateStartValue=1
 AnnotationIndexControlEnabled=0
@@ -138,66 +138,70 @@ DocumentPath=Project Outputs for StenoKeyboard_V0\Design Rule Check - PCB_Before
 DItemRevisionGUID=
 
 [GeneratedDocument2]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion.DRR
+DocumentPath=Project Outputs for StenoKeyboard_V0\Design Rule Check - PCB_FinalVersion.html
 DItemRevisionGUID=
 
 [GeneratedDocument3]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion.EXTREP
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion.DRR
 DItemRevisionGUID=
 
 [GeneratedDocument4]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion.LDP
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion.EXTREP
 DItemRevisionGUID=
 
 [GeneratedDocument5]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion.REP
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion.LDP
 DItemRevisionGUID=
 
 [GeneratedDocument6]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion.TXT
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion.REP
 DItemRevisionGUID=
 
 [GeneratedDocument7]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Copper_Signal_Bot.gbr
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion.TXT
 DItemRevisionGUID=
 
 [GeneratedDocument8]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Copper_Signal_Top.gbr
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Copper_Signal_Bot.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument9]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Drawing_1.gbr
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Copper_Signal_Top.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument10]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Drillmap_1.gbr
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Drawing_1.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument11]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Legend_Bot.gbr
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Drillmap_1.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument12]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Legend_Top.gbr
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Legend_Bot.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument13]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Paste_Bot.gbr
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Legend_Top.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument14]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Paste_Top.gbr
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Paste_Bot.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument15]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Profile.gbr
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Paste_Top.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument16]
-DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Soldermask_Bot.gbr
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Profile.gbr
 DItemRevisionGUID=
 
 [GeneratedDocument17]
+DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Soldermask_Bot.gbr
+DItemRevisionGUID=
+
+[GeneratedDocument18]
 DocumentPath=Project Outputs for StenoKeyboard_V0\PCB_FinalVersion_Soldermask_Top.gbr
 DItemRevisionGUID=
 
@@ -1205,10 +1209,12 @@ L17=WNNNNNNNWNNNWWWWN
 SortOrder=1
 SortLocation=0
 ReplaceSubparts=0
-MatchParameter1=Comment
+MatchParameter1=Capacitance
 MatchStrictly1=1
-MatchParameter2=Library Reference
+MatchParameter2=Comment
 MatchStrictly2=1
+MatchParameter3=Library Reference
+MatchStrictly3=1
 PhysicalNamingFormat=$Component_$RoomName
 GlobalIndexSortOrder=3
 GlobalIndexSortLocation=0
