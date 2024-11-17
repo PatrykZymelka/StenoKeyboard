@@ -5,6 +5,4 @@
 #include <stdint.h>
 
 
-char Data[][] = {"hello", "hi"};
-
 #endif

@@ -19,7 +19,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usb_device.h"
-#include "library.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -99,6 +98,11 @@
 #define KEY_SLASH 0x38 // / and ?
 #define KEY_CAPSLOCK 0x39 // Caps Lock
 
+#define MAX_KEY_SIZE 2000
+#define MAX_VALUE_SIZE 2000
+#define TABLE_SIZE 2000
+
+#define TIME_LIMIT 2
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -107,6 +111,7 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+TIM_HandleTypeDef htim10;
 
 /* USER CODE BEGIN PV */
 	extern USBD_HandleTypeDef hUsbDeviceFS;
@@ -124,18 +129,26 @@
 	}subKeyBoard;
 
 	subKeyBoard keyBoardHIDsub = {0,0,0,0,0,0,0,0};
+
+	typedef struct {
+	    char key[MAX_KEY_SIZE];
+	    char value[MAX_VALUE_SIZE];
+	} HashEntry;
+
+	HashEntry *hashTable[TABLE_SIZE];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
+static void MX_TIM10_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+volatile uint32_t elapsedTime = 0;
 /* USER CODE END 0 */
 
 /**
@@ -156,6 +169,7 @@ int main(void)
 
   /* USER CODE BEGIN Init */
 
+
   /* USER CODE END Init */
 
   /* Configure the system clock */
@@ -168,6 +182,7 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USB_DEVICE_Init();
+  MX_TIM10_Init();
   /* USER CODE BEGIN 2 */
 
   int counter1 = 0;
@@ -193,15 +208,20 @@ int main(void)
   int counter21 = 0;
   int counter22 = 0;
   int counter23 = 0;
+  int counter24 = 0;
 
   int lastPress = 0;
   int timeout = 0;
   int previousChar = 0;
-  int buffer[21] = {};
+  char charbuffer[22] = {};
   int bufferItemsNumber = 0;
+  char result[22] = {};
+  int activeTimeLimit = TIME_LIMIT;
+  int activeTimer = 0;
+
 
   uint8_t Scan_KeyMatrix(void) {
-        uint8_t key = 0xFF;
+        uint8_t key = 0;
 
   		HAL_GPIO_WritePin(Column1_GPIO_Port, Column1_Pin, 1);
   		HAL_GPIO_WritePin(Column2_GPIO_Port, Column2_Pin, 0);
@@ -223,7 +243,7 @@ int main(void)
             key = 2;
         }
         if (HAL_GPIO_ReadPin(Row3_GPIO_Port, Row3_Pin) == 1) {
-			key = 2;
+			key = 24;
         }
 
   		HAL_GPIO_WritePin(Column1_GPIO_Port, Column1_Pin, 0);
@@ -439,7 +459,7 @@ int main(void)
     }
   void Clear_Buffer(){
   	  for (int i = 0; i < 22; i++) {
-  	  		          buffer[i] = '\0';
+  	  		          charbuffer[i] = '\0';
   	   }
     }
   void Send_Character(){
@@ -449,38 +469,14 @@ int main(void)
 	  keyBoardHIDsub.KEYCODE2=0x00;
 	  USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
 	  HAL_Delay(20);
+
 	  }
 
-  void Translation(int number){
-	  if(number == 1){
-		  for(int n = 0; n < bufferItemsNumber; n++){
-		  Send_Character(buffer[n]);
-		  }
-		  bufferItemsNumber = 0;
-		  Clear_Buffer();
-	  }
-	  else{
-		  buffer[bufferItemsNumber] = number;
-		  bufferItemsNumber += 1;
-	  }
-  }
 
 
-  void Send_Gate(int n) {
-	  if(previousChar < n || n == 1){
-		  if(n != lastPress){
-			  timeout = 0;
-		  }
-		  else{
-			  timeout +=1;
-			  }
 
-		  if(timeout >= 1200 || timeout == 0){
-			  Send_Character();
-		  }
-		  previousChar = n;
-		 }
-  }
+
+
   void Set_Character(char i){
 	  switch(i){
 	  	  	  case 'a':
@@ -667,6 +663,18 @@ int main(void)
 					keyBoardHIDsub.MODIFIER=0x02;
 					keyBoardHIDsub.KEYCODE2=KEY_0;
 				break;
+			case '+':
+					keyBoardHIDsub.MODIFIER=0x02;
+					keyBoardHIDsub.KEYCODE2=KEY_SPACE;
+				break;
+			case ' ':
+					keyBoardHIDsub.MODIFIER=0x00;
+					keyBoardHIDsub.KEYCODE2=KEY_SPACE;
+				break;
+			default:
+					keyBoardHIDsub.MODIFIER=0x00;
+					keyBoardHIDsub.KEYCODE2=0x00;
+				break;
 	  	  }
   }
   void Test_Send(){
@@ -678,26 +686,103 @@ int main(void)
 	  }
   }
 
-  void Read_File_Test(){
-	  FILE *f = fopen("Combinations.txt", "r");
-	  if(f == NULL){
-		 perror("Error encountered");
-		 return 1;
-	  }
-	  char line[50];
-
-	  if(fgets(line, sizeof(line), f) != NULL){
-		  for(int n = 0; n < sizeof(line); n++){
-			  Set_Character(line[n]);
-			  Send_Character();
-		  }
-	  }
+  unsigned int hashFunction(const char *key) {
+      unsigned int hash = 0;
+      while (*key) {
+          hash = (hash << 5) + *key++;
+      }
+      return hash % TABLE_SIZE;
   }
+
+  void insert(const char *key, const char *value) {
+      unsigned int index = hashFunction(key);
+
+      HashEntry *entry = (HashEntry *)malloc(sizeof(HashEntry));
+      strcpy(entry->key, key);
+      strcpy(entry->value, value);
+
+      hashTable[index] = entry;
+  }
+
+  const char *search(const char *key) {
+      unsigned int index = hashFunction(key);
+
+      if (hashTable[index] != NULL && strcmp(hashTable[index]->key, key) == 0) {
+          return hashTable[index]->value;
+      }
+      return NULL;
+  }
+  void hashInit(){
+	    for (int i = 0; i < TABLE_SIZE; i++) {
+	        hashTable[i] = NULL;
+	    }
+
+	    insert("S", "is");
+	    insert("ST", "is it");
+	    insert("STK", "and");
+	    insert("SAOU", "sue");
+	    insert("SAOPB", "soon");
+	    insert("P", "about");
+	    insert("KOD", "cod");
+	    insert("TAO*E", "ty");
+	    insert("STRA/TA", "strata");
+	    insert("STA/TAOU/KWOE", "status quo");
+	    insert("STA/TAOU", "statue");
+	    insert("STAT/WET", "statuette");
+  }
+  void sendBuffer(){
+	  for(int n = 0; n < bufferItemsNumber; n++){
+			strcpy(result, (search(charbuffer)));
+		  }
+
+		  for(int n = 0; n < strlen(result); n++){
+		  Set_Character(result[n]);
+		  Send_Character();
+		  }
+		  Set_Character(' ');
+		  Send_Character();
+		  bufferItemsNumber = 0;
+		  Clear_Buffer();
+  }
+  void translation(int n, char c){
+  	  if(n == 1){
+  		  sendBuffer();
+  	  }
+  	  else{
+  		  charbuffer[bufferItemsNumber] = c;
+  		  bufferItemsNumber += 1;
+  	  }
+    }
+  void Send_Gate(int n, char c) {
+	  if(previousChar == 0 && n == 24){
+		  return;
+	  }
+  	  if(previousChar < n || n == 1 || n == 24){
+  		  if(n != lastPress){
+  			  timeout = 0;
+  		  }
+  		  else{
+  			  timeout +=1;
+  			  }
+
+  		  if(timeout >= 1200 || timeout == 0){
+  			  translation(n, c);
+  		  }
+
+  		  previousChar = n;
+  		  if(n == 24){
+			  previousChar = 0;
+			  activeTimeLimit = activeTimeLimit + TIME_LIMIT;
+		  }
+  		 }
+    }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
     uint8_t pressed_key;
+    hashInit();
     while (1)
     {
     /* USER CODE END WHILE */
@@ -705,36 +790,42 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
   	  // Initialize GPIOs for keyboard matrix
+    pressed_key = Scan_KeyMatrix();
 
-  	pressed_key = Scan_KeyMatrix();
+  	if(pressed_key != 0 && activeTimer == 0){
+  		HAL_TIM_Base_Start_IT(&htim10);
+  		activeTimer = 1;
+  	}
+  	if(elapsedTime >= activeTimeLimit){
+  		HAL_TIM_Base_Stop_IT(&htim10);
+  		activeTimer = 0;
+  		elapsedTime = 0;
 
-  	// Change the blink speed based on the button pressed
+  		Set_Character(' ');
+		Send_Gate(1, ' ');
+		lastPress = 1;
+  	}
   	switch (pressed_key) {
   	    case 1:
   	    	/*
 
-  	    	Test_Send();
 
+			Read_File_Test();
+			Test_Send();
 #############################################
 
-		  counter1 += 1;
-  	      if (counter1 >= 3) {
-  	        Send_Gate(1);
-  	        lastPress = 1;
-  	        counter1 = 0;
-  	      }
+
 ##############################################
 
 
 
   	    	*/
-  	    	Read_File_Test();
-  	        break;
+
   	    case 2:
 		  counter2 += 1;
 		  if (counter2 >= 3) {
-			  Set_Character('s');
-			Send_Gate(2);
+			Set_Character('S');
+			Send_Gate(2, 'S');
 			lastPress = 2;
 			  counter2 = 0;
 		  }
@@ -742,8 +833,8 @@ int main(void)
   	    case 3:
   		  counter3 += 1;
   		  if (counter3 >= 3) {
-  			Set_Character('t');
-  			Send_Gate(3);
+  			Set_Character('T');
+  			Send_Gate(3, 'T');
   			lastPress = 3;
   			  counter3 = 0;
   		  }
@@ -751,8 +842,8 @@ int main(void)
   	    case 4:
 		  counter4 += 1;
 		  if (counter4 >= 3) {
-			  Set_Character('k');
-			Send_Gate(4);
+			  Set_Character('K');
+			Send_Gate(4, 'K');
 			lastPress = 4;
 			  counter4 = 0;
 		  }
@@ -760,8 +851,8 @@ int main(void)
   	    case 5:
 		  counter5 += 1;
 		  if (counter5 >= 3) {
-			  Set_Character('p');
-			Send_Gate(5);
+			  Set_Character('P');
+			Send_Gate(5, 'P');
 			lastPress = 5;
 			  counter5 = 0;
     		  }
@@ -769,8 +860,8 @@ int main(void)
   	    case 6:
 		  counter6 += 1;
 		if (counter6 >= 3) {
-			  Set_Character('w');
-			Send_Gate(6);
+			  Set_Character('W');
+			Send_Gate(6, 'W');
 			lastPress = 6;
 			  counter6 = 0;
     		  }
@@ -778,8 +869,8 @@ int main(void)
   	    case 7:
 		  counter7 += 1;
 		  if (counter7 >= 3) {
-			  Set_Character('h');
-			Send_Gate(7);
+			  Set_Character('H');
+			Send_Gate(7, 'H');
 			lastPress = 7;
 			  counter7 = 0;
     		  }
@@ -787,8 +878,8 @@ int main(void)
   	    case 8:
 		  counter8 += 1;
 		  if (counter8 >= 3) {
-			  Set_Character('r');
-			Send_Gate(8);
+			  Set_Character('R');
+			Send_Gate(8, 'R');
 			lastPress = 8;
 			  counter8 = 0;
     		  }
@@ -796,8 +887,8 @@ int main(void)
   	    case 9:
 		  counter9 += 1;
 		  if (counter9 >= 3) {
-			  Set_Character('a');
-			Send_Gate(9);
+			  Set_Character('A');
+			Send_Gate(9, 'A');
 			lastPress = 9;
 			  counter9 = 0;
     		  }
@@ -805,8 +896,8 @@ int main(void)
   	    case 10:
 		  counter10 += 1;
 		  if (counter10 >= 3) {
-			  Set_Character('o');
-			Send_Gate(10);
+			  Set_Character('O');
+			Send_Gate(10, 'O');
 			lastPress = 10;
 			  counter10 = 0;
     		  }
@@ -815,7 +906,7 @@ int main(void)
 		  counter11 += 1;
 		  if (counter11 >= 3) {
 			  Set_Character('*');
-			Send_Gate(11);
+			Send_Gate(11, '*');
 			lastPress = 11;
 			  counter11 = 0;
     		  }
@@ -823,8 +914,8 @@ int main(void)
   	    case 12:
 		  counter12 += 1;
 		  if (counter12 >= 3) {
-			  Set_Character('e');
-			Send_Gate(12);
+			  Set_Character('E');
+			Send_Gate(12, 'E');
 			lastPress = 12;
 			  counter12 = 0;
     		  }
@@ -832,8 +923,8 @@ int main(void)
   	    case 13:
 		  counter13 += 1;
 		  if (counter13 >= 3) {
-			  Set_Character('u');
-			Send_Gate(13);
+			  Set_Character('U');
+			Send_Gate(13, 'U');
 			lastPress = 13;
 			  counter13 = 0;
 		  }
@@ -841,8 +932,8 @@ int main(void)
   	    case 14:
 		  counter14 += 1;
 		  if (counter14 >= 3) {
-			  Set_Character('f');
-			Send_Gate(14);
+			  Set_Character('F');
+			Send_Gate(14, 'F');
 			lastPress = 14;
 			  counter14 = 0;
 		  }
@@ -850,8 +941,8 @@ int main(void)
   	    case 15:
 		  counter15 += 1;
 		  if (counter15 >= 3) {
-			  Set_Character('r');
-			Send_Gate(15);
+			  Set_Character('R');
+			Send_Gate(15, 'R');
 			lastPress = 15;
 			  counter15 = 0;
 		  }
@@ -859,8 +950,8 @@ int main(void)
   	    case 16:
 		  counter16 += 1;
 		  if (counter16 >= 3) {
-			  Set_Character('p');
-			Send_Gate(16);
+			  Set_Character('P');
+			Send_Gate(16, 'P');
 			lastPress = 16;
 			  counter16 = 0;
 		  }
@@ -868,8 +959,8 @@ int main(void)
   	    case 17:
 		  counter17 += 1;
 		  if (counter17 >= 3) {
-			  Set_Character('b');
-			Send_Gate(17);
+			  Set_Character('B');
+			Send_Gate(17, 'B');
 			lastPress = 17;
 			  counter17 = 0;
 		  }
@@ -877,8 +968,8 @@ int main(void)
   	    case 18:
 		  counter18 += 1;
 		  if (counter18 >= 3) {
-			  Set_Character('l');
-			Send_Gate(18);
+			  Set_Character('L');
+			Send_Gate(18, 'L');
 			lastPress = 18;
 			  counter18 = 0;
 		  }
@@ -886,8 +977,8 @@ int main(void)
   	    case 19:
 		  counter19 += 1;
 		  if (counter19 >= 3) {
-			  Set_Character('g');
-			Send_Gate(19);
+			  Set_Character('G');
+			Send_Gate(19, 'G');
 			lastPress = 19;
 			  counter19 = 0;
 		  }
@@ -895,8 +986,8 @@ int main(void)
   	    case 20:
 		  counter20 += 1;
 		  if (counter20 >= 3) {
-			  Set_Character('t');
-			Send_Gate(20);
+			  Set_Character('T');
+			Send_Gate(20, 'T');
 			lastPress = 20;
 			  counter20 = 0;
 		  }
@@ -904,8 +995,8 @@ int main(void)
   	    case 21:
 		  counter21 += 1;
 		  if (counter21 >= 3) {
-			  Set_Character('s');
-			Send_Gate(21);
+			  Set_Character('S');
+			Send_Gate(21, 'S');
 			lastPress = 21;
 			  counter21 = 0;
 		  }
@@ -913,8 +1004,8 @@ int main(void)
   	    case 22:
 		  counter22 += 1;
 		  if (counter22 >= 3) {
-			  Set_Character('d');
-			Send_Gate(22);
+			  Set_Character('D');
+			Send_Gate(22, 'D');
 			lastPress = 22;
 			  counter22 = 0;
 		  }
@@ -922,18 +1013,29 @@ int main(void)
   	    case 23:
 		  counter23 += 1;
 		  if (counter23 >= 3) {
-			  Set_Character('z');
-			Send_Gate(23);
+			  Set_Character('Z');
+			Send_Gate(23, 'Z');
 			lastPress = 23;
 			  counter23 = 0;
 		  }
   	        break;
+  	    case 24:
+		  counter24 += 1;
+		  if (counter24 >= 3) {
+			Send_Gate(24, '/');
+			lastPress = 24;
+			  counter24 = 0;
+		  }
+				break;
   	    default:
   	        break;
+  		}
   	}
+
   }
+
   /* USER CODE END 3 */
-}
+
 
 /**
   * @brief System Clock Configuration
@@ -978,6 +1080,37 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+}
+
+/**
+  * @brief TIM10 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM10_Init(void)
+{
+
+  /* USER CODE BEGIN TIM10_Init 0 */
+
+  /* USER CODE END TIM10_Init 0 */
+
+  /* USER CODE BEGIN TIM10_Init 1 */
+
+  /* USER CODE END TIM10_Init 1 */
+  htim10.Instance = TIM10;
+  htim10.Init.Prescaler = 10000 - 1;
+  htim10.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim10.Init.Period = 10000 - 1;
+  htim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim10.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim10) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM10_Init 2 */
+
+  /* USER CODE END TIM10_Init 2 */
+
 }
 
 /**
@@ -1041,7 +1174,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+    		if(htim == &htim10){
+    			elapsedTime++;
+    		}
+    	}
 /* USER CODE END 4 */
 
 /**
