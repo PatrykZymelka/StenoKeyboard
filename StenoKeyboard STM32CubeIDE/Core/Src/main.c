@@ -20,6 +20,7 @@
 #include "main.h"
 #include "usb_device.h"
 
+
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -102,7 +103,10 @@
 #define MAX_VALUE_SIZE 2000
 #define TABLE_SIZE 2000
 
-#define TIME_LIMIT 2
+#define TIME_LIMIT 5
+
+
+#define __HAL_TIM_SET_COUNTER(__HANDLE__, __COUNTER__) ((__HANDLE__)->Instance->CNT = (__COUNTER__))
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -632,8 +636,8 @@ int main(void)
 					keyBoardHIDsub.KEYCODE2=KEY_2;
 				break;
 			case '#':
-					keyBoardHIDsub.MODIFIER=0x02;
-					keyBoardHIDsub.KEYCODE2=KEY_3;
+					keyBoardHIDsub.MODIFIER=0x00;
+					keyBoardHIDsub.KEYCODE2=KEY_BACKSPACE;
 				break;
 			case '$':
 					keyBoardHIDsub.MODIFIER=0x02;
@@ -671,21 +675,16 @@ int main(void)
 					keyBoardHIDsub.MODIFIER=0x00;
 					keyBoardHIDsub.KEYCODE2=KEY_SPACE;
 				break;
+			case '\'':
+								keyBoardHIDsub.MODIFIER=0x00;
+								keyBoardHIDsub.KEYCODE2=KEY_APOSTROPHE;
+							break;
 			default:
 					keyBoardHIDsub.MODIFIER=0x00;
 					keyBoardHIDsub.KEYCODE2=0x00;
 				break;
 	  	  }
   }
-  void Test_Send(){
-	  char str[] = "hello";
-	  int l = strlen(str);
-	  for(int i = 0; i < l; i++){
-		  Set_Character(str[i]);
-		  Send_Character();
-	  }
-  }
-
   unsigned int hashFunction(const char *key) {
       unsigned int hash = 0;
       while (*key) {
@@ -729,6 +728,18 @@ int main(void)
 	    insert("STA/TAOU/KWOE", "status quo");
 	    insert("STA/TAOU", "statue");
 	    insert("STAT/WET", "statuette");
+		insert("TKO*FG", "doing");
+		insert("TKO", "do");
+		insert("TKAUS", "cause");
+		insert("TKAET", "data");
+		insert("TKAEUPBT", "didn't"),
+		insert("TKAEU", "day");
+		insert("TKAOS", "does");
+		insert("TKAOUT", "duty");
+		insert("TKAOU", "due");
+		insert("TKAOE/TPAULT", "default");
+		insert("LT", "#ing");
+		insert("LG", "#n't");
   }
   void sendBuffer(){
 	  for(int n = 0; n < bufferItemsNumber; n++){
@@ -753,6 +764,13 @@ int main(void)
   		  bufferItemsNumber += 1;
   	  }
     }
+  void CounterRestart(){
+	  HAL_TIM_Base_Stop_IT(&htim10);
+	  __HAL_TIM_SET_COUNTER(&htim10, 0);
+	  elapsedTime = 0;
+	  HAL_TIM_Base_Start_IT(&htim10);
+  }
+
   void Send_Gate(int n, char c) {
 	  if(previousChar == 0 && n == 24){
 		  return;
@@ -767,15 +785,18 @@ int main(void)
 
   		  if(timeout >= 1200 || timeout == 0){
   			  translation(n, c);
+  			  CounterRestart();
+
+
   		  }
 
   		  previousChar = n;
   		  if(n == 24){
 			  previousChar = 0;
-			  activeTimeLimit = activeTimeLimit + TIME_LIMIT;
 		  }
   		 }
     }
+
 
   /* USER CODE END 2 */
 
@@ -1036,7 +1057,6 @@ int main(void)
 
   /* USER CODE END 3 */
 
-
 /**
   * @brief System Clock Configuration
   * @retval None
@@ -1100,7 +1120,7 @@ static void MX_TIM10_Init(void)
   htim10.Instance = TIM10;
   htim10.Init.Prescaler = 10000 - 1;
   htim10.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim10.Init.Period = 10000 - 1;
+  htim10.Init.Period = 1000 - 1;
   htim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim10.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim10) != HAL_OK)
