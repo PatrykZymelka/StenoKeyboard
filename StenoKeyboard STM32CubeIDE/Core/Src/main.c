@@ -647,10 +647,6 @@ int main(void)
 					keyBoardHIDsub.MODIFIER=0x02;
 					keyBoardHIDsub.KEYCODE2=KEY_5;
 				break;
-			case '^':
-					keyBoardHIDsub.MODIFIER=0x02;
-					keyBoardHIDsub.KEYCODE2=KEY_6;
-				break;
 			case '&':
 					keyBoardHIDsub.MODIFIER=0x02;
 					keyBoardHIDsub.KEYCODE2=KEY_7;
@@ -690,6 +686,10 @@ int main(void)
 			case '?':
 					keyBoardHIDsub.MODIFIER=0x02;
 					keyBoardHIDsub.KEYCODE2=KEY_SLASH;
+				break;
+			case '^':
+					keyBoardHIDsub.MODIFIER=0x00;
+					keyBoardHIDsub.KEYCODE2=KEY_ENTER;
 				break;
 			default:
 					keyBoardHIDsub.MODIFIER=0x00;
@@ -787,7 +787,6 @@ int main(void)
 		insert("HE", "he");
 		insert("T", "it");
 		insert("W", "with");
-		insert("S", "is");
 		insert("TPOR", "for");
 		insert("AS", "as");
 		insert("H", "had");
@@ -1775,6 +1774,7 @@ int main(void)
 		insert("HRAED", "lead");
 		insert("PHOF", "move");
 		insert("TPHAEUPLS", "names");
+		insert("Z", "^");
 
 
   }
