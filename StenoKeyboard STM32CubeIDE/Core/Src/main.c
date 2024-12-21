@@ -19,7 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "usb_device.h"
-
+#include <stdio.h>
+#include <stdlib.h>
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -187,32 +188,8 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_TIM10_Init();
   /* USER CODE BEGIN 2 */
-
-  int counter1 = 0;
-  int counter2 = 0;
-  int counter3 = 0;
-  int counter4 = 0;
-  int counter5 = 0;
-  int counter6 = 0;
-  int counter7 = 0;
-  int counter8 = 0;
-  int counter9 = 0;
-  int counter10 = 0;
-  int counter11 = 0;
-  int counter12 = 0;
-  int counter13 = 0;
-  int counter14 = 0;
-  int counter15 = 0;
-  int counter16 = 0;
-  int counter17 = 0;
-  int counter18 = 0;
-  int counter19 = 0;
-  int counter20 = 0;
-  int counter21 = 0;
-  int counter22 = 0;
-  int counter23 = 0;
-  int counter24 = 0;
-
+  int splitWordIndex = 0;
+  int splitWordBool = 0;
   int lastPress = 0;
   int timeout = 0;
   int timeoutB = 0;
@@ -222,10 +199,38 @@ int main(void)
   char result[22] = {};
   int activeTimeLimit = TIME_LIMIT;
   int activeTimer = 0;
+  uint8_t key[MAX_VALUE_SIZE] = {0};
+  int pressCounter = 0;
 
+  void CounterRestart(){
+	  HAL_TIM_Base_Stop_IT(&htim10);
+	  __HAL_TIM_SET_COUNTER(&htim10, 0);
+	  elapsedTime = 0;
+	  HAL_TIM_Base_Start_IT(&htim10);
+  }
+  void addToQueue(int k){
+	  int repeat = 0;
+	  for(int i = splitWordIndex; i < pressCounter; i++){
+		  if (key[i] == k) {
+			  repeat = 1;
+		  }
+	  }
+	  if(repeat == 0){
+		  if(k == 24){
+			  splitWordBool = 1;
+			  splitWordIndex = pressCounter;
+		  }
+		  if(activeTimer == 0){
+			HAL_TIM_Base_Start_IT(&htim10);
+			activeTimer = 1;
+		   }
+		  CounterRestart();
+		  key[pressCounter] = k;
+		  pressCounter += 1;
+	  }
+  }
+  uint8_t scanKeyMatrix(void) {
 
-  uint8_t Scan_KeyMatrix(void) {
-        uint8_t key = 0;
 
   		HAL_GPIO_WritePin(Column1_GPIO_Port, Column1_Pin, 1);
   		HAL_GPIO_WritePin(Column2_GPIO_Port, Column2_Pin, 0);
@@ -241,13 +246,13 @@ int main(void)
 
 
         if (HAL_GPIO_ReadPin(Row1_GPIO_Port, Row1_Pin) == 1) {
-            key = 1;
+        	return 1;
         }
         if (HAL_GPIO_ReadPin(Row2_GPIO_Port, Row2_Pin) == 1) {
-            key = 2;
+        	addToQueue(2);
         }
         if (HAL_GPIO_ReadPin(Row3_GPIO_Port, Row3_Pin) == 1) {
-			key = 24;
+        	addToQueue(24);
         }
 
   		HAL_GPIO_WritePin(Column1_GPIO_Port, Column1_Pin, 0);
@@ -264,10 +269,10 @@ int main(void)
 
 
         if (HAL_GPIO_ReadPin(Row2_GPIO_Port, Row2_Pin) == 1) {
-            key = 3;
+        	addToQueue(3);
         }
         if (HAL_GPIO_ReadPin(Row3_GPIO_Port, Row3_Pin) == 1) {
-			key = 4;
+        	addToQueue(4);
         }
 
 		HAL_GPIO_WritePin(Column1_GPIO_Port, Column1_Pin, 0);
@@ -284,10 +289,10 @@ int main(void)
 
 
 		if (HAL_GPIO_ReadPin(Row2_GPIO_Port, Row2_Pin) == 1) {
-			key = 5;
+			addToQueue(5);
 		}
 		if (HAL_GPIO_ReadPin(Row3_GPIO_Port, Row3_Pin) == 1) {
-			key = 6;
+			addToQueue(6);
 		}
 		HAL_GPIO_WritePin(Column1_GPIO_Port, Column1_Pin, 0);
 		HAL_GPIO_WritePin(Column2_GPIO_Port, Column2_Pin, 0);
@@ -303,13 +308,13 @@ int main(void)
 
 
 		if (HAL_GPIO_ReadPin(Row2_GPIO_Port, Row2_Pin) == 1) {
-			key = 7;
+			addToQueue(7);
 		}
 		if (HAL_GPIO_ReadPin(Row3_GPIO_Port, Row3_Pin) == 1) {
-			key = 8;
+			addToQueue(8);
 		}
 		if (HAL_GPIO_ReadPin(Row4_GPIO_Port, Row4_Pin) == 1) {
-			key = 9;
+			addToQueue(9);
 		}
 
 		HAL_GPIO_WritePin(Column1_GPIO_Port, Column1_Pin, 0);
@@ -326,10 +331,10 @@ int main(void)
 
 
 		if (HAL_GPIO_ReadPin(Row3_GPIO_Port, Row3_Pin) == 1) {
-			key = 11;
+			addToQueue(11);
 		}
 		if (HAL_GPIO_ReadPin(Row4_GPIO_Port, Row4_Pin) == 1) {
-			key = 10;
+			addToQueue(10);
 		}
 
 		HAL_GPIO_WritePin(Column1_GPIO_Port, Column1_Pin, 0);
@@ -346,10 +351,10 @@ int main(void)
 
 
 		if (HAL_GPIO_ReadPin(Row3_GPIO_Port, Row3_Pin) == 1) {
-			key = 11;
+			addToQueue(11);
 		}
 		if (HAL_GPIO_ReadPin(Row4_GPIO_Port, Row4_Pin) == 1) {
-			key = 12;
+			addToQueue(12);
 		}
 
 		HAL_GPIO_WritePin(Column1_GPIO_Port, Column1_Pin, 0);
@@ -366,13 +371,13 @@ int main(void)
 
 
 		if (HAL_GPIO_ReadPin(Row2_GPIO_Port, Row2_Pin) == 1) {
-			key = 14;
+			addToQueue(14);
 		}
 		if (HAL_GPIO_ReadPin(Row3_GPIO_Port, Row3_Pin) == 1) {
-			key = 15;
+			addToQueue(15);
 		}
 		if (HAL_GPIO_ReadPin(Row4_GPIO_Port, Row4_Pin) == 1) {
-			key = 13;
+			addToQueue(13);
 		}
 
 		HAL_GPIO_WritePin(Column1_GPIO_Port, Column1_Pin, 0);
@@ -389,10 +394,10 @@ int main(void)
 
 
 		if (HAL_GPIO_ReadPin(Row2_GPIO_Port, Row2_Pin) == 1) {
-			key = 16;
+			addToQueue(16);
 		}
 		if (HAL_GPIO_ReadPin(Row3_GPIO_Port, Row3_Pin) == 1) {
-			key = 17;
+			addToQueue(17);
 		}
 
 		HAL_GPIO_WritePin(Column1_GPIO_Port, Column1_Pin, 0);
@@ -409,10 +414,10 @@ int main(void)
 
 
 		if (HAL_GPIO_ReadPin(Row2_GPIO_Port, Row2_Pin) == 1) {
-			key = 18;
+			addToQueue(18);
 		}
 		if (HAL_GPIO_ReadPin(Row3_GPIO_Port, Row3_Pin) == 1) {
-			key = 19;
+			addToQueue(19);
 		}
 
 		HAL_GPIO_WritePin(Column1_GPIO_Port, Column1_Pin, 0);
@@ -429,10 +434,10 @@ int main(void)
 
 
 		if (HAL_GPIO_ReadPin(Row2_GPIO_Port, Row2_Pin) == 1) {
-			key = 20;
+			addToQueue(20);
 		}
 		if (HAL_GPIO_ReadPin(Row3_GPIO_Port, Row3_Pin) == 1) {
-			key = 21;
+			addToQueue(21);
 		}
 
 		HAL_GPIO_WritePin(Column1_GPIO_Port, Column1_Pin, 0);
@@ -450,22 +455,30 @@ int main(void)
 
 
         if (HAL_GPIO_ReadPin(Row1_GPIO_Port, Row1_Pin) == 1) {
-            key = 1;
+        	return 1;
         }
 		if (HAL_GPIO_ReadPin(Row2_GPIO_Port, Row2_Pin) == 1) {
-			key = 22;
+			addToQueue(22);
 		}
 		if (HAL_GPIO_ReadPin(Row3_GPIO_Port, Row3_Pin) == 1) {
-			key = 23;
+			addToQueue(23);
 		}
 
         return key;
     }
-  void Clear_Buffer(){
+  void ClearBuffer(){
   	  for (int i = 0; i < 22; i++) {
   	  		          charbuffer[i] = '\0';
   	   }
     }
+  void ClearKey(){
+    	  for (int i = 0; i < MAX_VALUE_SIZE; i++) {
+    	  		          key[i] = '\0';
+    	   }
+    	  pressCounter = 0;
+    	  splitWordIndex = 0;
+    	  splitWordBool = 0;
+      }
   void Send_Character(){
 	  USBD_HID_SendReport(&hUsbDeviceFS,&keyBoardHIDsub,sizeof(keyBoardHIDsub));
 	  HAL_Delay(20);
@@ -475,10 +488,6 @@ int main(void)
 	  HAL_Delay(20);
 
 	  }
-
-
-
-
 
 
   void Set_Character(char i){
@@ -734,9 +743,9 @@ int main(void)
           if (strcmp(hashTable[index]->key, key) == 0) {
               return hashTable[index]->value;
           }
-          index = (index + 1) % TABLE_SIZE; // Linear probing
+          index = (index + 1) % TABLE_SIZE;
       }
-      return NULL; // Key not found
+      return NULL;
   }
 
   void hashInit(){
@@ -753,7 +762,6 @@ int main(void)
 	    insert("KOD", "cod");
 	    insert("TAO*E", "ty");
 	    insert("STRA/TA", "strata");
-	    insert("STA/TAOU/KWOE", "status quo");
 	    insert("STA/TAOU", "statue");
 	    insert("STAT/WET", "statuette");
 		insert("TKO*FG", "doing");
@@ -768,6 +776,8 @@ int main(void)
 		insert("TKAOE/TPAULT", "default");
 		insert("LT", "#ing");
 		insert("LG", "#n't");
+		insert("LGS", "#ed");
+		insert("LGSZ", "#s");
 		insert("*F", "#.");
 		insert("*FP", "#,");
 		insert("HFP", "#?");
@@ -775,8 +785,8 @@ int main(void)
 		insert("TPHROETS", "floats");
 		insert("TPHROES", "flows");
 		insert("TPHROED", "flowed");
-		insert("-T", "the");
-		insert("-F", "of");
+		insert("T", "the");
+		insert("F", "of");
 		insert("SKP", "and");
 		insert("TO", "to");
 		insert("TPH", "in");
@@ -792,7 +802,7 @@ int main(void)
 		insert("H", "had");
 		insert("U", "you");
 		insert("TPHOT", "not");
-		insert("-B", "be");
+		insert("B", "be");
 		insert("HER", "her");
 		insert("OPB", "on");
 		insert("AT", "at");
@@ -820,7 +830,7 @@ int main(void)
 		insert("WE", "we");
 		insert("WHO", "who");
 		insert("WO", "would");
-		insert("PW-PB", "been");
+		insert("PWPB", "been");
 		insert("HR", "will");
 		insert("TPHO", "no");
 		insert("WHEPB", "when");
@@ -860,7 +870,7 @@ int main(void)
 		insert("SUFP", "such");
 		insert("AEU", "a");
 		insert("TKPWRAET", "great");
-		insert("PW-FR", "before");
+		insert("PWFR", "before");
 		insert("PHUFT", "must");
 		insert("TWO", "two");
 		insert("THEZ", "these");
@@ -871,7 +881,7 @@ int main(void)
 		insert("TKOUPB", "down");
 		insert("AF", "after");
 		insert("TPEUFRT", "first");
-		insert("PHR-FPLT", "Mr.");
+		insert("PHRFPLT", "Mr.");
 		insert("TKPWAOD", "good");
 		insert("PHEPB", "men");
 		insert("OEPB", "own");
@@ -880,7 +890,7 @@ int main(void)
 		insert("OLD", "old");
 		insert("SHAL", "shall");
 		insert("TKAEU", "day");
-		insert("W-R", "where");
+		insert("WR", "where");
 		insert("THOZ", "those");
 		insert("KAEUPL", "came");
 		insert("KOPL", "come");
@@ -893,7 +903,7 @@ int main(void)
 		insert("PHAEUBG", "make");
 		insert("WEL", "well");
 		insert("THRU", "through");
-		insert("-BG", "being");
+		insert("BG", "being");
 		insert("HROPBG", "long");
 		insert("SAEU", "say");
 		insert("PHAOEUT", "might");
@@ -901,7 +911,7 @@ int main(void)
 		insert("APL", "am");
 		insert("TAO", "too");
 		insert("AOEPB", "even");
-		insert("TK-F", "def");
+		insert("TKF", "def");
 		insert("TKPWEPB", "again");
 		insert("PHAEPB", "many");
 		insert("PWABG", "back");
@@ -913,8 +923,8 @@ int main(void)
 		insert("SAEUPL", "same");
 		insert("HRAFT", "last");
 		insert("THAUT", "thought");
-		insert("A/WAEU", "away");
-		insert("TPH-PB", "under");
+		insert("A/AEU", "away");
+		insert("TPHPB", "under");
 		insert("TAEUBG", "take");
 		insert("TPOUPBD", "found");
 		insert("HAPBD", "hand");
@@ -923,14 +933,14 @@ int main(void)
 		insert("PHRAEUS", "place");
 		insert("WHAOEUL", "while");
 		insert("SKWRUFT", "just");
-		insert("HR-S", "also");
+		insert("HRS", "also");
 		insert("KWRUPBG", "young");
 		insert("KWRET", "yet");
 		insert("THOE", "though");
 		insert("TKPWEPBS", "against");
 		insert("THEUPBGS", "things");
 		insert("TKPWET", "get");
-		insert("-FR", "ever");
+		insert("FR", "ever");
 		insert("TKPWEUF", "give");
 		insert("TKPWOD", "god");
 		insert("KWRAOERS", "years");
@@ -951,7 +961,7 @@ int main(void)
 		insert("TPHU", "new");
 		insert("HRUF", "love");
 		insert("AULS", "always");
-		insert("PHR-S", "Mrs.");
+		insert("PHRS", "Mrs.");
 		insert("PUT", "put");
 		insert("TPHAOEUT", "night");
 		insert("AOEFP", "each");
@@ -983,16 +993,16 @@ int main(void)
 		insert("HRET", "let");
 		insert("HRORD", "lord");
 		insert("KREU", "country");
-		insert("SK-D", "asked");
-		insert("TKPW-G", "going");
+		insert("SKD", "asked");
+		insert("TKPWG", "going");
 		insert("SAOEPB", "seen");
 		insert("PWOERT", "better");
 		insert("P*", "p");
-		insert("SR-G", "having");
+		insert("SRG", "having");
 		insert("HOEPL", "home");
 		insert("TPHAOU", "knew");
 		insert("SAOEUD", "side");
-		insert("S-G", "something");
+		insert("SG", "something");
 		insert("PHOEPLT", "moment");
 		insert("TPAER", "father");
 		insert("PHOPBG", "among");
@@ -1007,17 +1017,17 @@ int main(void)
 		insert("EPBD", "end");
 		insert("TKPWAEUF", "gave");
 		insert("RAOPL", "room");
-		insert("HR-PL", "almost");
+		insert("HRPL", "almost");
 		insert("SPHAL", "small");
 		insert("THO*U", "thou");
-		insert("SK-PBT", "cannot");
+		insert("SKPBT", "cannot");
 		insert("WAUR", "water");
 		insert("WAPBT", "want");
 		insert("HOUF", "however");
 		insert("HRAOEUT", "light");
 		insert("KWAOEUT", "quite");
 		insert("PWRAUT", "brought");
-		insert("TPH-R", "nor");
+		insert("TPHR", "nor");
 		insert("WORD", "word");
 		insert("WHOZ", "whose");
 		insert("TKPWEUFPB", "given");
@@ -1029,9 +1039,9 @@ int main(void)
 		insert("AOUS", "use");
 		insert("PHORPBG", "morning");
 		insert("PHAO*EUS", "myself");
-		insert("TKPWUT/*EPB/PWERG", "Gutenberg");
+		insert("TKPWUT/PWERG", "Gutenberg");
 		insert("TPELT", "felt");
-		insert("TPH-L", "until");
+		insert("TPHL", "until");
 		insert("SEUPBS", "since");
 		insert("POUR", "power");
 		insert("TH*EPLS", "themselves");
@@ -1050,7 +1060,7 @@ int main(void)
 		insert("TK*T", "death");
 		insert("STAOD", "stood");
 		insert("TPORPL", "form");
-		insert("W-PB", "within");
+		insert("WPB", "within");
 		insert("TOGT", "together");
 		insert("TEUL", "till");
 		insert("THAO*EU", "thy");
@@ -1092,7 +1102,7 @@ int main(void)
 		insert("HAOEU", "high");
 		insert("RAED", "read");
 		insert("STEU", "city");
-		insert("HR-R", "already");
+		insert("HRR", "already");
 		insert("SAOEFD", "received");
 		insert("TPABGT", "fact");
 		insert("TKPWOPB", "gone");
@@ -1114,7 +1124,7 @@ int main(void)
 		insert("HREF", "leave");
 		insert("AEUR", "air");
 		insert("TPHAEURT", "nature");
-		insert("AEPBS/-D", "answered");
+		insert("AEPBS/D", "answered");
 		insert("AOERT", "either");
 		insert("HRAU", "law");
 		insert("HEP", "help");
@@ -1130,7 +1140,7 @@ int main(void)
 		insert("WEUPL", "women");
 		insert("SPAOEBG", "speak");
 		insert("TPHUPL", "number");
-		insert("TH-FR", "therefore");
+		insert("THFR", "therefore");
 		insert("HOUR", "hour");
 		insert("TPREPBDZ", "friends");
 		insert("HELD", "held");
@@ -1143,7 +1153,7 @@ int main(void)
 		insert("*E/R*", "er");
 		insert("PHAERPB", "manner");
 		insert("SEBGD", "second");
-		insert("R-PB", "reason");
+		insert("RPB", "reason");
 		insert("RE/PHRAOEUD", "replied");
 		insert("AOUPBTD", "united");
 		insert("KAUL", "call");
@@ -1152,7 +1162,7 @@ int main(void)
 		insert("HEUPBD", "behind");
 		insert("PWAEUPL", "became");
 		insert("SKWROPB", "John");
-		insert("PW-BG", "become");
+		insert("PWBG", "become");
 		insert("TKED", "dead");
 		insert("*ERT", "earth");
 		insert("PWOEU", "boy");
@@ -1171,7 +1181,7 @@ int main(void)
 		insert("KAEUR", "care");
 		insert("TRAO*UT", "truth");
 		insert("TKPWROUPBD", "ground");
-		insert("R-L", "really");
+		insert("RL", "really");
 		insert("REFT", "rest");
 		insert("PHAOEPB", "mean");
 		insert("TKEUFRT", "different");
@@ -1225,23 +1235,23 @@ int main(void)
 		insert("PAERT", "party");
 		insert("TPAOEUPB", "fine");
 		insert("KWR*/*E", "ye");
-		insert("R-D", "ready");
+		insert("RD", "ready");
 		insert("STOER", "story");
 		insert("KPHOPB", "common");
 		insert("PWAOBG", "book");
 		insert("TRO*PBG", "electronic");
 		insert("TAUBG", "talk");
-		insert("K-T", "account");
+		insert("KT", "account");
 		insert("PHARBG", "mark");
 		insert("TR", "interest");
 		insert("WREUPB", "written");
-		insert("K-PBT", "can't");
+		insert("KPBT", "can't");
 		insert("PWED", "bed");
 		insert("TPHES", "necessary");
 		insert("AEUPBLG", "age");
 		insert("ELS", "else");
 		insert("TPORS", "force");
-		insert("KWR-D", "idea");
+		insert("KWRD", "idea");
 		insert("HRORPBG", "longer");
 		insert("ART", "art");
 		insert("SPOEBG", "spoke");
@@ -1255,11 +1265,10 @@ int main(void)
 		insert("TAEUBL", "table");
 		insert("A/PAOERD", "appeared");
 		insert("REUFR", "river");
-		insert("T-PBD", "continued");
+		insert("TPBD", "continued");
 		insert("AOEU", "eye");
-		insert("*E/T*/KWR*", "ety");
 		insert("SUPB", "sun");
-		insert("TPH-FGS", "information");
+		insert("TPHFGS", "information");
 		insert("HRAEURT", "later");
 		insert("EFRG", "everything");
 		insert("RAOEFPD", "reached");
@@ -1277,7 +1286,7 @@ int main(void)
 		insert("TPURT", "further");
 		insert("PURP", "purpose");
 		insert("HAEP", "happy");
-		insert("AD/-D", "added");
+		insert("AD/D", "added");
 		insert("SAOEPL", "seem");
 		insert("TAEUG", "taking");
 		insert("PWHRAOD", "blood");
@@ -1292,7 +1301,7 @@ int main(void)
 		insert("POGS", "position");
 		insert("SOUPBD", "sound");
 		insert("TPHOPB", "none");
-		insert("SPWR-D", "entered");
+		insert("SPWRD", "entered");
 		insert("KHRAOER", "clear");
 		insert("RAOD", "road");
 		insert("HRAEUT", "late");
@@ -1315,7 +1324,7 @@ int main(void)
 		insert("TPRAPBS", "France");
 		insert("HREUFG", "living");
 		insert("PAES", "peace");
-		insert("TK-PBT", "didn't");
+		insert("TKPBT", "didn't");
 		insert("HROE", "low");
 		insert("TPHORT", "north");
 		insert("RER", "remember");
@@ -1324,7 +1333,7 @@ int main(void)
 		insert("PREUT", "pretty");
 		insert("TPAUL", "fall");
 		insert("TPAEUR", "fair");
-		insert("S-FS", "service");
+		insert("SFS", "service");
 		insert("PWHRO", "below");
 		insert("KPEPT", "except");
 		insert("PHERPB", "American");
@@ -1360,7 +1369,7 @@ int main(void)
 		insert("TRAOEUD", "tried");
 		insert("TPROPBT", "front");
 		insert("PWEUG", "big");
-		insert("TKR-FPLT", "Dr.");
+		insert("TKRFPLT", "Dr.");
 		insert("HREUFD", "lived");
 		insert("SERPBL", "certainly");
 		insert("WEUPBD", "wind");
@@ -1371,7 +1380,7 @@ int main(void)
 		insert("KHUFRPB", "church");
 		insert("STREPBG", "strength");
 		insert("HREPBG", "length");
-		insert("K-P", "company");
+		insert("KP", "company");
 		insert("PHRAEUFD", "placed");
 		insert("PAEUP", "paper");
 		insert("HRERTS", "letters");
@@ -1383,7 +1392,7 @@ int main(void)
 		insert("KWRO*URS", "yourself");
 		insert("TP*EL", "fellow");
 		insert("PWAER", "bear");
-		insert("P-PB", "opinion");
+		insert("PPB", "opinion");
 		insert("WOEUPBD", "window");
 		insert("RAPB", "ran");
 		insert("TPA*EUT", "faith");
@@ -1414,7 +1423,7 @@ int main(void)
 		insert("SRAEURS", "various");
 		insert("SHRAOEP", "sleep");
 		insert("PERPBS", "persons");
-		insert("PWHROBG/TK-LS/KWOET", "blockquote");
+		insert("PWHROBG/TKLS/KWOET", "blockquote");
 		insert("HAPD", "happened");
 		insert("PHRAR", "particular");
 		insert("TKRAOU", "drew");
@@ -1424,7 +1433,7 @@ int main(void)
 		insert("KHAOEF", "chief");
 		insert("KHAPBS", "chance");
 		insert("KORG", "according");
-		insert("TKPWEUPB/-G", "beginning");
+		insert("TKPWEUPB/G", "beginning");
 		insert("*BGS", "action");
 		insert("TKAOEL", "deal");
 		insert("HROFD", "loved");
@@ -1438,7 +1447,7 @@ int main(void)
 		insert("HOEUF", "heavy");
 		insert("SWAOET", "sweet");
 		insert("PHRAEUPB", "plain");
-		insert("TKOEPBGS/-S", "donations");
+		insert("TKOEPBGS/S", "donations");
 		insert("PHAOELD", "immediately");
 		insert("WRO", "wrote");
 		insert("PHO*UT", "mouth");
@@ -1453,10 +1462,10 @@ int main(void)
 		insert("SKWROEU", "joy");
 		insert("TPHAEPL", "enemy");
 		insert("PWROEPB", "broken");
-		insert("TPH-LS", "unless");
+		insert("TPHLS", "unless");
 		insert("STAEUTS", "states");
 		insert("SHEUP", "ship");
-		insert("K-PB", "condition");
+		insert("KPB", "condition");
 		insert("KAER", "carry");
 		insert("SKHRAEUPLD", "exclaimed");
 		insert("KHRUG", "including");
@@ -1477,7 +1486,7 @@ int main(void)
 		insert("WHAF", "whatever");
 		insert("SHROEL", "slowly");
 		insert("TAERS", "tears");
-		insert("HORS/-S", "horses");
+		insert("HORS/S", "horses");
 		insert("PHRAEUFS", "places");
 		insert("KAUT", "caught");
 		insert("STAEU", "stay");
@@ -1487,7 +1496,7 @@ int main(void)
 		insert("KWRORBG", "York");
 		insert("EUPL/POB", "impossible");
 		insert("PAOERD", "period");
-		insert("ST-R", "sister");
+		insert("STR", "sister");
 		insert("PWA*LT", "battle");
 		insert("SKAOL", "school");
 		insert("PHA*ER", "Mary");
@@ -1501,7 +1510,7 @@ int main(void)
 		insert("HRERPBD", "learned");
 		insert("PHAOERL", "merely");
 		insert("RAOEFP", "reach");
-		insert("S-PL", "system");
+		insert("SPL", "system");
 		insert("TWEPBT", "twenty");
 		insert("TKEURPB", "dinner");
 		insert("KWAO*EUT", "quiet");
@@ -1528,7 +1537,7 @@ int main(void)
 		insert("SHOED", "showed");
 		insert("TKPWEGT", "getting");
 		insert("AEURBT", "ancient");
-		insert("R-PT", "respect");
+		insert("RPT", "respect");
 		insert("THEURD", "third");
 		insert("WO*RT", "worth");
 		insert("S*EUPL", "simple");
@@ -1545,16 +1554,16 @@ int main(void)
 		insert("KPHAPBD", "command");
 		insert("TOEPB", "tone");
 		insert("RARD", "regard");
-		insert("KP-PTD", "expected");
+		insert("KPPTD", "expected");
 		insert("PHAOER", "mere");
 		insert("PHO*PBT", "month");
 		insert("PWE/SAOEUD", "beside");
 		insert("SHREPBT", "silent");
-		insert("P-F", "perfect");
+		insert("PF", "perfect");
 		insert("SPAOERPBS", "experience");
 		insert("STRAOET", "street");
 		insert("WREUG", "writing");
-		insert("TKPW-S", "goes");
+		insert("TKPWS", "goes");
 		insert("SEURBGS", "circumstances");
 		insert("SPWAOEURL", "entirely");
 		insert("TPRERB", "fresh");
@@ -1565,7 +1574,7 @@ int main(void)
 		insert("WAOD", "wood");
 		insert("STOEPB", "stone");
 		insert("KWEULG", "quickly");
-		insert("TPH-TS", "notice");
+		insert("TPHTS", "notice");
 		insert("PWRAOEUT", "bright");
 		insert("KRAOEUFT", "Christ");
 		insert("PWOET", "boat");
@@ -1574,7 +1583,7 @@ int main(void)
 		insert("SWHA", "somewhat");
 		insert("SUD", "sudden");
 		insert("SRAOUL", "value");
-		insert("KR*/TP-PL", "c.");
+		insert("KR*/TPPL", "c.");
 		insert("TKREBGS", "direction");
 		insert("KHAEUR", "chair");
 		insert("TKAOU", "due");
@@ -1588,7 +1597,7 @@ int main(void)
 		insert("RAEGD", "reading");
 		insert("TKPWRAE", "agree");
 		insert("HRAOEUPBS", "lines");
-		insert("KR-D", "considered");
+		insert("KRD", "considered");
 		insert("TPAOELD", "field");
 		insert("OEBD", "observed");
 		insert("SKAEURS/HREU", "scarcely");
@@ -1604,19 +1613,19 @@ int main(void)
 		insert("TPORPLD", "formed");
 		insert("SPAOEG", "speaking");
 		insert("TRAOEUG", "trying");
-		insert("K-FRGS", "conversation");
+		insert("KFRGS", "conversation");
 		insert("PROR", "proper");
 		insert("HEUL", "hill");
 		insert("PHAOUFBG", "music");
 		insert("TAOUPBT", "opportunity");
-		insert("TH-TS", "that's");
+		insert("THTS", "that's");
 		insert("SKWR*ERPB", "German");
 		insert("AFPB", "afternoon");
 		insert("KRAOEU", "cry");
 		insert("KOFT", "cost");
 		insert("HRO*UD", "allowed");
 		insert("TKPWEURLS", "girls");
-		insert("KR-BL", "considerable");
+		insert("KRBL", "considerable");
 		insert("KR*", "c");
 		insert("PWROEBG", "broke");
 		insert("HO*RPB/A*U", "honour");
@@ -1636,7 +1645,7 @@ int main(void)
 		insert("SREUD", "individual");
 		insert("SEUGT", "sitting");
 		insert("HRERPB", "learn");
-		insert("PHREU/K-L", "political");
+		insert("PHREU/KL", "political");
 		insert("TKEUFL", "difficult");
 		insert("PWEUT", "bit");
 		insert("SPAOEFP", "speech");
@@ -1652,7 +1661,7 @@ int main(void)
 		insert("OEUFRS", "officers");
 		insert("OFRD", "offered");
 		insert("ORPBLG", "original");
-		insert("HAEP/-PBS", "happiness");
+		insert("HAEP/PBS", "happiness");
 		insert("TPHRO*URS", "flowers");
 		insert("PRO*UD", "produced");
 		insert("SAOURPL", "summer");
@@ -1691,7 +1700,7 @@ int main(void)
 		insert("TURPBG", "turning");
 		insert("KROEURPBT", "century");
 		insert("STEPS", "steps");
-		insert("SPWEPBD/-D", "intended");
+		insert("SPWEPBD/D", "intended");
 		insert("SOFT", "soft");
 		insert("STRAEUT", "straight");
 		insert("PHAERTS", "matters");
@@ -1724,8 +1733,8 @@ int main(void)
 		insert("HRAEUDZ", "ladies");
 		insert("PEFGS", "possession");
 		insert("PHREFPBT", "pleasant");
-		insert("P-FRL", "perfectly");
-		insert("O*/TK-LS/AE", "o'");
+		insert("PFRL", "perfectly");
+		insert("O*/TKLS", "o'");
 		insert("PHOEURPL", "memory");
 		insert("AOURBL", "usually");
 		insert("TKPWRAEUF", "grave");
@@ -1739,7 +1748,7 @@ int main(void)
 		insert("AOEULD", "island");
 		insert("PHAOEGT", "meeting");
 		insert("KAFRP", "camp");
-		insert("TPH-GS", "nation");
+		insert("TPHGS", "nation");
 		insert("KPEUFS", "existence");
 		insert("RE/PHRAOEU", "reply");
 		insert("AOEUD", "I'd");
@@ -1747,8 +1756,8 @@ int main(void)
 		insert("SKAOEU", "sky");
 		insert("TUFP", "touch");
 		insert("KWAL", "equal");
-		insert("TP-RPB", "fortune");
-		insert("SR*/TP-PL", "v.");
+		insert("TPRPB", "fortune");
+		insert("SR*/TPPL", "v.");
 		insert("SHOR", "shore");
 		insert("TKPHAEUPB", "domain");
 		insert("TPHAEUPLD", "named");
@@ -1790,7 +1799,7 @@ int main(void)
 		  Set_Character(' ');
 		  Send_Character();
 		  bufferItemsNumber = 0;
-		  Clear_Buffer();
+		  ClearBuffer();
   }
   void translation(int n, char c){
   	  if(n == 1){
@@ -1801,38 +1810,7 @@ int main(void)
   		  bufferItemsNumber += 1;
   	  }
     }
-  void CounterRestart(){
-	  HAL_TIM_Base_Stop_IT(&htim10);
-	  __HAL_TIM_SET_COUNTER(&htim10, 0);
-	  elapsedTime = 0;
-	  HAL_TIM_Base_Start_IT(&htim10);
-  }
 
-  void Send_Gate(int n, char c) {
-	  if(previousChar == 0 && n == 24){
-		  return;
-	  }
-  	  if(previousChar < n || n == 1 || n == 24){
-  		  if(n != lastPress){
-  			  timeout = 0;
-  		  }
-  		  else{
-  			  timeout +=1;
-  			  }
-
-  		  if(timeout >= 1200 || timeout == 0){
-  			  translation(n, c);
-  			  CounterRestart();
-
-
-  		  }
-
-  		  previousChar = n;
-  		  if(n == 24){
-			  previousChar = 0;
-		  }
-  		 }
-    }
   void BackSpace(){
 	  if(lastPress != 1){
 		  timeoutB = 0;
@@ -1847,12 +1825,102 @@ int main(void)
 	  }
 
   }
+  void allocateGate(){
+	  for(int i = 0; i < pressCounter; i++){
+    	switch (key[i]) {
+    	    case 2:
+  			translation(2, 'S');
+    	        break;
+    	    case 3:
+  			translation(3, 'T');
+  			break;
+    	    case 4:
+  			translation(4, 'K');
+    	        break;
+    	    case 5:
+  			translation(5, 'P');
+    	        break;
+    	    case 6:
+  			translation(6, 'W');
+    	        break;
+    	    case 7:
+  			translation(7, 'H');
+    	        break;
+    	    case 8:
+  			translation(8, 'R');
+    	        break;
+    	    case 9:
+  			translation(9, 'A');
+    	        break;
+    	    case 10:
+  			translation(10, 'O');
+    	        break;
+    	    case 11:
+  			translation(11, '*');
+    	        break;
+    	    case 12:
+  			translation(12, 'E');
+    	        break;
+    	    case 13:
+  			translation(13, 'U');
+    	        break;
+    	    case 14:
+  			translation(14, 'F');
+    	        break;
+    	    case 15:
+  			translation(15, 'R');
+    	        break;
+    	    case 16:
+  			translation(16, 'P');
+    	        break;
+    	    case 17:
+  			translation(17, 'B');
+    	        break;
+    	    case 18:
+  			translation(18, 'L');
+    	        break;
+    	    case 19:
+  			translation(19, 'G');
+    	        break;
+    	    case 20:
+  			translation(20, 'T');
+    	        break;
+    	    case 21:
+  			translation(21, 'S');
+    	        break;
+    	    case 22:
+  			translation(22, 'D');
+    	        break;
+    	    case 23:
+  			translation(23, 'Z');
+    	        break;
+    	    case 24:
+  			translation(24, '/');
+  			break;
+    	    default:
+    	        break;
+    		}
+	  	  }
+    	}
+
+  void selectionSort(int start, int end) {
+      for (int i = start; i < end - 1; i++) {
+          int minIndex = i;
+          for (int j = i + 1; j < end; j++) {
+              if (key[j] < key[minIndex]) {
+                  minIndex = j;
+              }
+          }
+          int temp = key[i];
+          key[i] = key[minIndex];
+          key[minIndex] = temp;
+      }
+  }
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-    uint8_t pressed_key;
     hashInit();
     while (1)
     {
@@ -1861,212 +1929,30 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
   	  // Initialize GPIOs for keyboard matrix
-    pressed_key = Scan_KeyMatrix();
+    int b = 0;
+    b = scanKeyMatrix();
+    if(b == 1){
+    	BackSpace();
+    }
 
-  	if(pressed_key != 0 && activeTimer == 0){
-  		HAL_TIM_Base_Start_IT(&htim10);
-  		activeTimer = 1;
-  	}
   	if(elapsedTime >= activeTimeLimit){
   		HAL_TIM_Base_Stop_IT(&htim10);
   		activeTimer = 0;
   		elapsedTime = 0;
 
-		Send_Gate(1, ' ');
+  		if(splitWordIndex == 1){
+  			selectionSort(0,splitWordIndex);
+  			selectionSort((splitWordIndex + 1), pressCounter);
+  		}
+  		else{
+  			selectionSort(0,pressCounter);
+  		}
+  		allocateGate();
+  		ClearKey();
+  		translation(1, ' ');
 		lastPress = 1;
   	}
-  	switch (pressed_key) {
-  	    case 1:
-  	    	BackSpace();
-			break;
-  	    case 2:
-		  counter2 += 1;
-		  if (counter2 >= 3) {
-			Send_Gate(2, 'S');
-			lastPress = 2;
-			  counter2 = 0;
-		  }
-  	        break;
-  	    case 3:
-  		  counter3 += 1;
-  		  if (counter3 >= 3) {
-  			Send_Gate(3, 'T');
-  			lastPress = 3;
-  			  counter3 = 0;
-  		  }
-  	        break;
-  	    case 4:
-		  counter4 += 1;
-		  if (counter4 >= 3) {
-			Send_Gate(4, 'K');
-			lastPress = 4;
-			  counter4 = 0;
-		  }
-  	        break;
-  	    case 5:
-		  counter5 += 1;
-		  if (counter5 >= 3) {
-			Send_Gate(5, 'P');
-			lastPress = 5;
-			  counter5 = 0;
-    		  }
-  	        break;
-  	    case 6:
-		  counter6 += 1;
-		if (counter6 >= 3) {
-			Send_Gate(6, 'W');
-			lastPress = 6;
-			  counter6 = 0;
-    		  }
-  	        break;
-  	    case 7:
-		  counter7 += 1;
-		  if (counter7 >= 3) {
-			Send_Gate(7, 'H');
-			lastPress = 7;
-			  counter7 = 0;
-    		  }
-  	        break;
-  	    case 8:
-		  counter8 += 1;
-		  if (counter8 >= 3) {
-			Send_Gate(8, 'R');
-			lastPress = 8;
-			  counter8 = 0;
-    		  }
-  	        break;
-  	    case 9:
-		  counter9 += 1;
-		  if (counter9 >= 3) {
-			Send_Gate(9, 'A');
-			lastPress = 9;
-			  counter9 = 0;
-    		  }
-  	        break;
-  	    case 10:
-		  counter10 += 1;
-		  if (counter10 >= 3) {
-			Send_Gate(10, 'O');
-			lastPress = 10;
-			  counter10 = 0;
-    		  }
-  	        break;
-  	    case 11:
-		  counter11 += 1;
-		  if (counter11 >= 3) {
-			Send_Gate(11, '*');
-			lastPress = 11;
-			  counter11 = 0;
-    		  }
-  	        break;
-  	    case 12:
-		  counter12 += 1;
-		  if (counter12 >= 3) {
-			Send_Gate(12, 'E');
-			lastPress = 12;
-			  counter12 = 0;
-    		  }
-  	        break;
-  	    case 13:
-		  counter13 += 1;
-		  if (counter13 >= 3) {
-			Send_Gate(13, 'U');
-			lastPress = 13;
-			  counter13 = 0;
-		  }
-  	        break;
-  	    case 14:
-		  counter14 += 1;
-		  if (counter14 >= 3) {
-			Send_Gate(14, 'F');
-			lastPress = 14;
-			  counter14 = 0;
-		  }
-  	        break;
-  	    case 15:
-		  counter15 += 1;
-		  if (counter15 >= 3) {
-			Send_Gate(15, 'R');
-			lastPress = 15;
-			  counter15 = 0;
-		  }
-  	        break;
-  	    case 16:
-		  counter16 += 1;
-		  if (counter16 >= 3) {
-			Send_Gate(16, 'P');
-			lastPress = 16;
-			  counter16 = 0;
-		  }
-  	        break;
-  	    case 17:
-		  counter17 += 1;
-		  if (counter17 >= 3) {
-			Send_Gate(17, 'B');
-			lastPress = 17;
-			  counter17 = 0;
-		  }
-  	        break;
-  	    case 18:
-		  counter18 += 1;
-		  if (counter18 >= 3) {
-			Send_Gate(18, 'L');
-			lastPress = 18;
-			  counter18 = 0;
-		  }
-  	        break;
-  	    case 19:
-		  counter19 += 1;
-		  if (counter19 >= 3) {
-			Send_Gate(19, 'G');
-			lastPress = 19;
-			  counter19 = 0;
-		  }
-  	        break;
-  	    case 20:
-		  counter20 += 1;
-		  if (counter20 >= 3) {
-			Send_Gate(20, 'T');
-			lastPress = 20;
-			  counter20 = 0;
-		  }
-  	        break;
-  	    case 21:
-		  counter21 += 1;
-		  if (counter21 >= 3) {
-			Send_Gate(21, 'S');
-			lastPress = 21;
-			  counter21 = 0;
-		  }
-  	        break;
-  	    case 22:
-		  counter22 += 1;
-		  if (counter22 >= 3) {
-			Send_Gate(22, 'D');
-			lastPress = 22;
-			  counter22 = 0;
-		  }
-  	        break;
-  	    case 23:
-		  counter23 += 1;
-		  if (counter23 >= 3) {
-			Send_Gate(23, 'Z');
-			lastPress = 23;
-			  counter23 = 0;
-		  }
-  	        break;
-  	    case 24:
-		  counter24 += 1;
-		  if (counter24 >= 3) {
-			Send_Gate(24, '/');
-			lastPress = 24;
-			  counter24 = 0;
-		  }
-				break;
-  	    default:
-  	        break;
-  		}
-  	}
+}
 
   }
 
